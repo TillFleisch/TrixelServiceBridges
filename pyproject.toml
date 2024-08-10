@@ -1,0 +1,32 @@
+[tool.black]
+line-length = 120
+
+[tool.flake8]
+max-line-length = 120
+
+[tool.isort]
+profile = "black"
+
+[project.optional-dependencies]
+dev = ["black", "isort"]
+
+
+[project]
+name = "trixelservicebridges"
+version = "0.0.0"
+description = "Collection of bridges which add measurement stations to the privacy-aware, trixel-based sensor network."
+readme = "README.md"
+authors = [{ name = "Till", email = "till@fleisch.dev" }]
+license = { file = "LICENSE" }
+keywords = ["trixel", "private", "privacy focused","environmental monitoring", "sensor network"]
+dependencies = [
+    'tomli; python_version < "3.11"',
+    'pydantic',
+    'pydantic-extra-types',
+    'trixelserviceclient',
+]
+
+[project.urls]
+Homepage = "https://github.com/TillFleisch/TrixelServiceBridges"
+Repository = "https://github.com/TillFleisch/TrixelServiceBridges.git"
+Issues = "https://github.com/TillFleisch/TrixelServiceBridges/issues"
