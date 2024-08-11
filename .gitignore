@@ -166,3 +166,4 @@ bin/
 .vscode/
 .vs/
 cache/
+config/
