@@ -7,8 +7,8 @@ from pydantic_extra_types.coordinate import Coordinate
 from trixelserviceclient import ClientConfig
 from trixelserviceclient.schema import MeasurementType, Sensor
 
-from .base_simulation_client import SimulationClient
-from .config_schema import BlankClientSimulationConfig
+from ..base_simulation_client import SimulationClient
+from ..config_schema import BlankClientSimulationConfig
 
 
 class BlankSimulationClient(SimulationClient):
