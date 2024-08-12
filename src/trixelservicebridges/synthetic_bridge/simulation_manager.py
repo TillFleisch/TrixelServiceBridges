@@ -44,9 +44,13 @@ class SimulationManager:
     def generate(self):
         """Generate remaining clients based on the simulation configuration file."""
         logger.debug(f"Generating {self.bridge_config.target_client_count-len(self.clients)} new clients.")
-        client_simulation_config: ClientSimulationConfig = self.bridge_config.client_simulation_config
         client_simulation_class = get_simulation_class(self.bridge_config.client_simulation_config.client_class)
-        for _ in range(len(self.clients), self.bridge_config.target_client_count):
+        for i in range(len(self.clients), self.bridge_config.target_client_count):
+            client_simulation_config: ClientSimulationConfig = self.bridge_config.client_simulation_config.model_copy(
+                deep=True
+            )
+            client_simulation_config.client_index = i
+            client_simulation_config.max_client_index = self.bridge_config.target_client_count
             self.clients.append(client_simulation_class(client_simulation_config=client_simulation_config))
 
     def load(self):

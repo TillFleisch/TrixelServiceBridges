@@ -25,6 +25,7 @@ dependencies = [
     'pydantic-extra-types',
     'pydantic-settings',
     'trixelserviceclient',
+    'numpy',
 ]
 
 [project.urls]

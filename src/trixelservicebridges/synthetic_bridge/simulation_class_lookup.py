@@ -5,10 +5,14 @@ from typing import Type
 from .base_simulation_client import SimulationClient
 from .config_schema import AvailableClients
 from .simulation_clients.blank_client import BlankSimulationClient
+from .simulation_clients.coordinate_gradient_client import (
+    CoordinateGradientSimulationClient,
+)
 
 # Lookup table which holds the client class indicated by the configuration literal
 simulation_client_class_lookup: dict[AvailableClients, Type[SimulationClient]] = {
     "blank": BlankSimulationClient,
+    "coordinate_gradient": CoordinateGradientSimulationClient,
 }
 
 
