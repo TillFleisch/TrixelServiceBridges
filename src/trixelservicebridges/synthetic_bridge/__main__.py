@@ -14,11 +14,12 @@ from .config_schema import BridgeConfig
 from .simulation_manager import SimulationManager
 
 
-async def main(config_path: Path, ignore_pickle: bool = False):
+async def main(config_path: Path, ignore_pickle: bool = False, delete: bool = False):
     """
     Load the user provided configuration file and run the synthetic bridge.
 
     :param config_path: Path which points to the bridge configuration file
+    :param delete: Gracefully delete senors from the network
     :param ignore_pickle: if True, an existing pickle file will be deleted
     """
 
@@ -33,10 +34,15 @@ async def main(config_path: Path, ignore_pickle: bool = False):
     logger = get_logger(__name__)
 
     pickle_path = Path(bridge_config.pickle_file_path)
-    if ignore_pickle and os.path.exists(pickle_path):
-        os.remove(pickle_path)
+    if ignore_pickle:
+        if os.path.exists(pickle_path):
+            logger.info("Removing existing pickle file!")
+            os.remove(pickle_path)
+        else:
+            logger.info("Pickle file already removed!")
+        return
 
-    manager = SimulationManager(bridge_config=bridge_config)
+    manager = SimulationManager(bridge_config=bridge_config, generate_clients=(not delete))
 
     terminated: bool = False
 
@@ -55,7 +61,7 @@ async def main(config_path: Path, ignore_pickle: bool = False):
         terminated = True
 
     signal.signal(signal.SIGINT, signal_handler)
-    await manager.run()
+    await manager.run(delete=delete)
 
 
 if __name__ == "__main__":
@@ -76,6 +82,12 @@ if __name__ == "__main__":
         action="store_true",
         help="If set to true, an existing pickle file will be ignored.",
     )
+    parser.add_argument(
+        "-d",
+        "--delete",
+        action="store_true",
+        help="Delete existing clients gracefully by delete from their TMSs.",
+    )
     args = parser.parse_args()
 
-    asyncio.run(main(config_path=args.config_file, ignore_pickle=args.reset))
+    asyncio.run(main(config_path=args.config_file, ignore_pickle=args.reset, delete=args.delete))

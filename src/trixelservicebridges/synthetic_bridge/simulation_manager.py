@@ -25,18 +25,21 @@ class SimulationManager:
     def __init__(
         self,
         bridge_config: BridgeConfig,
+        generate_clients: bool = True,
     ) -> None:
         """
         Initialize the manager by loading existing clients and/or generating new ones.
 
         :param bridge_config: simulation configuration model
+        :param generate_clients: if set to true, new clients will be generated, otherwise only existing clients are used
         """
         global logger
         logger = update_log_level(logger)
         self.bridge_config = bridge_config
         self.clients = list()
         self.load()
-        self.generate()
+        if generate_clients:
+            self.generate()
 
     def generate(self):
         """Generate remaining clients based on the simulation configuration file."""
@@ -85,29 +88,41 @@ class SimulationManager:
         pickle.dump(client_configs, file)
         file.close()
 
-    async def run(self):
+    async def run(self, delete: bool = False):
         """Run the simulation manager, which spawns the desired number of clients.
 
         Must be called once client have been loaded or generated.
+        :param delete: if set to true, clients will be gracefully deleted from the network once they are ready
         """
         tasks: list[asyncio.Task] = list()
+        running_tasks: list[asyncio.Task] = list()
 
         client: SimulationClient
         for i, client in enumerate(self.clients):
             if i >= self.bridge_config.target_client_count:
                 continue
-            tasks.append(client.run())
+            tasks.append(client.run(delete=delete))
 
         async with asyncio.TaskGroup() as tg:
             logger.debug(f"Starting {len(tasks)} clients!")
             for task in tasks:
-                tg.create_task(task)
+                running_tasks.append(tg.create_task(task))
                 if self.bridge_config.client_spawn_delay is not None:
                     await asyncio.sleep(self.bridge_config.client_spawn_delay.total_seconds())
             logger.info(f"Started {len(tasks)} client!")
+
+        if delete:
+            deleted_clients: list[SimulationClient] = list()
+            for client in self.clients:
+                if client._config.ms_config is None:
+                    deleted_clients.append(client)
+
+            for client in deleted_clients:
+                self.clients.remove(client)
+
+        self.store()
 
     def stop(self):
         """Stop the manager gracefully by killing all clients and persisting their configuration."""
         for client in self.clients:
             client.kill()
-        self.store()
