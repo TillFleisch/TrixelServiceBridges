@@ -14,7 +14,13 @@ from pydantic_settings import (
     TomlConfigSettingsSource,
 )
 
-AvailableClients = Literal["blank", "coordinate_gradient", "skewed_coordinate_gradient"]
+AvailableClients = Literal[
+    "blank",
+    "coordinate_gradient",
+    "skewed_coordinate_gradient",
+    "diurnal_approximation",
+    "skewed_diurnal_approximation",
+]
 
 
 class ClientSimulationConfig(BaseModel):
@@ -128,6 +134,35 @@ class CoordinateGradientClientSimulationConfig(RandomBaseClientSimulationConfig)
     decimal_accuracy: NonNegativeInt = 2
 
 
+class DiurnalApproximationClientSimulationConfig(RandomBaseClientSimulationConfig):
+    """Configuration settings related to the diurnal approximation client."""
+
+    client_class: Literal["diurnal_approximation"] = "diurnal_approximation"
+
+    # Determines how many day cycles are squeezed into the time-frame of one real-time day
+    # This parameter can be used to simulate values faster than 'real-time'
+    # Example: if day_squeeze=2, within 24 real-time hours, time-dependent values of simulation clients will have
+    # experienced two day and the resulting time-dependent changes
+    day_squeeze: float = 1
+
+    # Temperature bias which is added to the measurement value at the equator. With increasing distance the impact of
+    # this bias is scaled linearly such that it does not have an effect at the poles.
+    equator_temperature_bias: float = 20
+
+    # Determines how the maximum temperature is calculated during client initialization
+    max_temperature_generation: FixedValue | NormalRandom | UniformRandom = FixedValue(value=25)
+    max_temperature: float = 25
+
+    # Determines how the minimum temperature is calculated during client initialization
+    min_temperature_generation: FixedValue | NormalRandom | UniformRandom = FixedValue(value=13)
+    min_temperature: float = 13
+
+    # Determines how the peak time is calculated during client initialization
+    peak_time_generation: FixedValue | NormalRandom | UniformRandom = FixedValue(value=0.5)
+    # Time of day at which the max temperature is reached (0..1 where 0 is midnight)
+    peak_time: float = 0.5
+
+
 class SkewedClientSimulationConfig(ClientSimulationConfig):
     """Settings related to the skewed client which alters measurements from other simulation clients."""
 
@@ -188,10 +223,20 @@ class SkewedCoordinateGradientClientSimulationConfig(
     client_class: Literal["skewed_coordinate_gradient"] = "skewed_coordinate_gradient"
 
 
+class SkewedDiurnalApproximationClientSimulationConfig(
+    SkewedClientSimulationConfig, DiurnalApproximationClientSimulationConfig
+):
+    """Combined configuration for the diurnal approximation and skewed simulation client."""
+
+    client_class: Literal["skewed_diurnal_approximation"] = "skewed_diurnal_approximation"
+
+
 AvailableSimulationConfigs = (
     BlankClientSimulationConfig
     | CoordinateGradientClientSimulationConfig
     | SkewedCoordinateGradientClientSimulationConfig
+    | DiurnalApproximationClientSimulationConfig
+    | SkewedDiurnalApproximationClientSimulationConfig
 )
 
 
