@@ -8,6 +8,7 @@ from trixelserviceclient import ClientConfig, MeasurementType, Sensor
 
 from ..config_schema import CoordinateGradientClientSimulationConfig
 from .random_base_client import RandomBaseSimulationClient
+from .skewed_client import SkewedSimulationClient
 
 
 class CoordinateGradientSimulationClient(RandomBaseSimulationClient):
@@ -39,3 +40,9 @@ class CoordinateGradientSimulationClient(RandomBaseSimulationClient):
             value = float(round(rng.normal(loc=value, scale=deviation, size=1)[0], decimal_accuracy))
             updates[sensor.sensor_id] = (datetime.now(), value)
         return updates
+
+
+class SkewedCoordinateGradientSimulationClient(SkewedSimulationClient, CoordinateGradientSimulationClient):
+    """Extended implementation which skews measurements according to the user-configuration."""
+
+    pass

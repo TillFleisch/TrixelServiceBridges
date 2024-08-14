@@ -14,7 +14,7 @@ from pydantic_settings import (
     TomlConfigSettingsSource,
 )
 
-AvailableClients = Literal["blank", "coordinate_gradient"]
+AvailableClients = Literal["blank", "coordinate_gradient", "skewed_coordinate_gradient"]
 
 
 class ClientSimulationConfig(BaseModel):
@@ -79,7 +79,7 @@ class FixedValue(BaseModel):
     """Fixed value configuration."""
 
     type: Literal["fixed"] = "fixed"
-    value: int
+    value: float
 
 
 class NormalRandom(BaseModel):
@@ -128,7 +128,71 @@ class CoordinateGradientClientSimulationConfig(RandomBaseClientSimulationConfig)
     decimal_accuracy: NonNegativeInt = 2
 
 
-AvailableSimulationConfigs = BlankClientSimulationConfig | CoordinateGradientClientSimulationConfig
+class SkewedClientSimulationConfig(ClientSimulationConfig):
+    """Settings related to the skewed client which alters measurements from other simulation clients."""
+
+    client_class: Literal["skewed_client"] = "skewed_client"
+
+    # Determines how many day cycles are squeezed into the time-frame of one real-time day
+    # This parameter can be used to simulate values faster than 'real-time'
+    # Example: if day_squeeze=2, within 24 real-time hours, time-dependent values of simulation clients will have
+    # experienced two day and the resulting time-dependent changes
+    day_squeeze: float = 1
+
+    # Determine how the static sensor bias is determined during generation of a client
+    bias_generation: FixedValue | NormalRandom | UniformRandom | None = None
+    # The fixed sensor bias which is added to simulated values
+    bias: float | None = None
+
+    # The mean value of the generated values should be 0
+    noise_generation: NormalRandom | UniformRandom | None = None
+
+    # Chance that an impulse is is generated instead of the value
+    impulse_noise_chance: float | None = None
+    # Determines how the impulse is determined from the normal value
+    # The impulse is added or subtracted from the values by chance with equal probability
+    impulse_generation: FixedValue | NormalRandom | UniformRandom = NormalRandom(mean=10, deviation=5)
+
+    # Random chance that a measurement will be discarded
+    skipped_measurement_chance: float | None = None
+
+    # Chance of a dropout occurring, which is a prolonged period of sensor absence
+    dropout_chance: float | None = None
+    # Dropout time in seconds
+    dropout_period: FixedValue | NormalRandom | UniformRandom = FixedValue(value=300)
+
+    # Chance that a measurement value will be repeated for an extended period of time
+    value_retain_chance: float | None = None
+    # Value retention time in seconds
+    value_retain_period: FixedValue | NormalRandom | UniformRandom = FixedValue(value=300)
+
+    # Determines if and how the daily bias value is determined
+    daily_bias_generation: FixedValue | NormalRandom | UniformRandom | None = None
+
+    # Adds a positive bias to the sensor measurement which peaks at daytime
+    # Some underlying parameters are unmodifiable (randomly chosen)
+    # This parameter determines how strongly the daytime bias affects the measurements
+    # A fixed value is generated during client generation
+    # A value of 0 means no impact, while 1 means that the measurement value can double; scales linearly
+    positive_daytime_bias_impact_generation: FixedValue | NormalRandom | UniformRandom | None = None
+
+    # Determines how strongly the day-time bias affects the generated time series
+    positive_daytime_bias_impact: float | None = None
+
+
+class SkewedCoordinateGradientClientSimulationConfig(
+    SkewedClientSimulationConfig, CoordinateGradientClientSimulationConfig
+):
+    """Combined configuration for the coordinate gradient and skewed simulation client."""
+
+    client_class: Literal["skewed_coordinate_gradient"] = "skewed_coordinate_gradient"
+
+
+AvailableSimulationConfigs = (
+    BlankClientSimulationConfig
+    | CoordinateGradientClientSimulationConfig
+    | SkewedCoordinateGradientClientSimulationConfig
+)
 
 
 class BridgeConfig(BaseSettings):
