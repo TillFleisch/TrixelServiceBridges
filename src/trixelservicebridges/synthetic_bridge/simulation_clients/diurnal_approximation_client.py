@@ -21,11 +21,32 @@ class DiurnalApproximationSimulationClient(RandomBaseSimulationClient):
         self, client_simulation_config: DiurnalApproximationClientSimulationConfig, config: ClientConfig | None = None
     ):
         """Generate a random base client with a single ambient temperature sensor."""
-        sensors = [Sensor(measurement_type=MeasurementType.AMBIENT_TEMPERATURE)]
 
-        client_simulation_config.peak_time = sample_value(client_simulation_config.peak_time_generation)
-        client_simulation_config.min_temperature = sample_value(client_simulation_config.min_temperature_generation)
-        client_simulation_config.max_temperature = sample_value(client_simulation_config.max_temperature_generation)
+        if client_simulation_config.sensor_accuracy is None:
+            rng = np.random.default_rng()
+            if (
+                client_simulation_config.sensor_undefined_accuracy_chance is None
+                or rng.uniform(low=0, high=1) > client_simulation_config.sensor_undefined_accuracy_chance
+            ):
+                client_simulation_config.sensor_accuracy = -1
+            else:
+                client_simulation_config.sensor_accuracy = max(
+                    0,
+                    round(
+                        sample_value(client_simulation_config.sensor_accuracy_generation),
+                        client_simulation_config.sensor_accuracy_decimals,
+                    ),
+                )
+
+        accuracy = None if client_simulation_config.sensor_accuracy < 0 else client_simulation_config.sensor_accuracy
+        sensors = [Sensor(measurement_type=MeasurementType.AMBIENT_TEMPERATURE, accuracy=accuracy)]
+
+        if client_simulation_config.peak_time is None:
+            client_simulation_config.peak_time = sample_value(client_simulation_config.peak_time_generation)
+        if client_simulation_config.min_temperature is None:
+            client_simulation_config.min_temperature = sample_value(client_simulation_config.min_temperature_generation)
+        if client_simulation_config.max_temperature is None:
+            client_simulation_config.max_temperature = sample_value(client_simulation_config.max_temperature_generation)
 
         super().__init__(client_simulation_config=client_simulation_config, sensors=sensors, config=config)
 

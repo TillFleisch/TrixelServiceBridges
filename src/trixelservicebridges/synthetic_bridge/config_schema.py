@@ -151,16 +151,26 @@ class DiurnalApproximationClientSimulationConfig(RandomBaseClientSimulationConfi
 
     # Determines how the maximum temperature is calculated during client initialization
     max_temperature_generation: FixedValue | NormalRandom | UniformRandom = FixedValue(value=25)
-    max_temperature: float = 25
+    max_temperature: float | None = None
 
     # Determines how the minimum temperature is calculated during client initialization
     min_temperature_generation: FixedValue | NormalRandom | UniformRandom = FixedValue(value=13)
-    min_temperature: float = 13
+    min_temperature: float | None = None
 
     # Determines how the peak time is calculated during client initialization
     peak_time_generation: FixedValue | NormalRandom | UniformRandom = FixedValue(value=0.5)
     # Time of day at which the max temperature is reached (0..1 where 0 is midnight)
-    peak_time: float = 0.5
+    peak_time: float | None = None
+
+    # Determines how the simulated sensors accuracy is determined, or disable generation if None
+    sensor_accuracy_generation: FixedValue | NormalRandom | UniformRandom | None = UniformRandom(min=0.05, max=1.0)
+    # Determines the chance with which an accuracy is generated, otherwise no accuracy is defined
+    sensor_undefined_accuracy_chance: float | None = 0.5
+    # The accuracy of the sensor, where None means it has not been determined, a negative values means it's not defined
+    # and a positive value is the sensors accuracy
+    sensor_accuracy: float | None = None
+    # Number decimal which are used for the resulting accuracy
+    sensor_accuracy_decimals: PositiveInt = 1
 
 
 class SkewedClientSimulationConfig(ClientSimulationConfig):
