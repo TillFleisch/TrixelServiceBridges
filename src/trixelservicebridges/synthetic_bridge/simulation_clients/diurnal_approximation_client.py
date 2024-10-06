@@ -21,7 +21,6 @@ class DiurnalApproximationSimulationClient(RandomBaseSimulationClient):
         self, client_simulation_config: DiurnalApproximationClientSimulationConfig, config: ClientConfig | None = None
     ):
         """Generate a random base client with a single ambient temperature sensor."""
-
         if client_simulation_config.sensor_accuracy is None:
             rng = np.random.default_rng()
             if (

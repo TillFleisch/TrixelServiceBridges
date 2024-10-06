@@ -125,6 +125,7 @@ class SkewedSimulationClient(SimulationClient):
             if self._client_simulation_config.value_retain_chance is not None:
                 if now < self._value_retention_end_time.get(i, now - timedelta(seconds=1)):
                     updates[i] = (timestamp, self._retained_values.get(i, None))
+                    continue
                 elif rng.uniform(0, 1) <= self._client_simulation_config.value_retain_chance:
                     self._value_retention_end_time[i] = now + timedelta(
                         seconds=sample_value(self._client_simulation_config.value_retain_period)
