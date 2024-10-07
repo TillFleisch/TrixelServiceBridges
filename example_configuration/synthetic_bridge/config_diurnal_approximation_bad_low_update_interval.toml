@@ -1,0 +1,47 @@
+target_client_count=210
+log_level=5
+pickle_file_path="config/quarter_quick/multi.pkl"
+
+[client_simulation_config]
+tls_host="localhost:8000"
+tls_use_ssl=false
+tms_use_ssl=false
+retry_interval=2
+polling_interval=10
+client_class="skewed_diurnal_approximation"
+
+day_squeeze = 75
+# This is equal to a 5 minute update interval equaling an update every four seconds
+# 1 real time day is equal to 00:19:12
+
+[client_simulation_config.noise_generation]
+type="normal_random"
+mean=0
+deviation=0.5
+
+[client_simulation_config.max_temperature_generation]
+type="normal_random"
+mean=25
+deviation=0.3
+
+[client_simulation_config.peak_time_generation]
+type="uniform_random"
+min=0.485
+max=0.515
+
+[client_simulation_config.min_temperature_generation]
+type="normal_random"
+mean=13
+deviation=0.3
+
+[client_simulation_config.k_generation]
+type="fixed"
+value=3
+
+[client_simulation_config.location_generation]
+type = "normal_random"
+latitude = 51.75
+longitude = 10
+latitude_deviation = 5.5
+longitude_deviation = 5.5
+
